@@ -49,7 +49,7 @@ function convertToLink(node) {
             case 'vless':
                 return generateVlessLink(node);
             case 'trojan':
-                return generateTrojanLink(node);
+                return generateTrojanLink(node);  // 处理 Trojan 类型
             case 'ss':
                 return generateSSLink(node);
             case 'ssr':
@@ -66,6 +66,37 @@ function convertToLink(node) {
     } catch (error) {
         console.error('Error converting node:', error);
         return node.url; // 转换失败时返回原始URL
+    }
+}
+
+// 生成 Trojan 链接
+function generateTrojanLink(node) {
+    try {
+        const params = new URLSearchParams();
+        const { settings } = node;
+
+        // 设置查询参数
+        if (settings.type) params.set('type', settings.type);
+        if (settings.security) params.set('security', settings.security);
+        if (settings.path) params.set('path', settings.path);
+        if (settings.host) params.set('host', settings.host);
+        if (settings.sni) params.set('sni', settings.sni);
+        if (settings.alpn) params.set('alpn', settings.alpn);
+
+        // 构建基本 URL
+        const url = `trojan://${settings.password}@${node.server}:${node.port}`;
+
+        // 查询参数部分
+        const query = params.toString();
+        
+        // 节点名称部分 (如果存在，则作为 hash 附加)
+        const hash = node.name ? `#${encodeURIComponent(node.name)}` : '';
+
+        // 返回生成的 URL，查询参数和 hash 部分
+        return `${url}${query ? '?' + query : ''}${hash}`;
+    } catch (error) {
+        console.error('Generate Trojan link error:', error);
+        return node.url;  // 出现错误时返回原始 URL
     }
 }
 
